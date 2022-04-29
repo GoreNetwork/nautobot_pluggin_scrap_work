@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load buttons %}
+{% load static %}
+{% load custom_links %}
+{% load helpers %}
+{% load plugins %}
+
+{% block title %}{{ object }}{% endblock title %}
+{% block content %}
+<div class="row">maintenance_notice
+   <div class="col-md-4">
+      <div class="panel panel-default">
+         <div class="panel-heading">
+            <strong>MaintenanceNotice</strong>
+         </div>
+         <table class="table table-hover panel-body attr-table">
+            <tr>
+               <td>Start Time</td>
+               <td>{{ object.start_time }}</td>
+            </tr>
+            <tr>
+               <td>End Time</td>
+               <td>{{ object.end_time }}</td>
+            </tr>
+            <tr>
+               <td>Duration</td>
+               <td>{{ object.duration }} minutes</td>
+            </tr>
+            <tr>
+               <td>Created By</td>
+               <td>{{ object.created_by | placeholder }}</td>
+            </tr>
+            <tr>
+               <td>Comments</td>
+               <td>{{ object.comments | placeholder }}</td>
+            </tr>
+      </div>
+      </table>
+   </div>
+</div>
+<div class="col-md-6">
+   <h3>Affected Devices</h3>
+   <ul>
+      {% for device in object.devices.all %}
+      <li><a href="{{ device.get_absolute_url }}">{{ device }}</a></li>
+      {% endfor %}
+   </ul>
+</div>
+{% include 'inc/custom_fields_panel.html' %}
+{% include 'inc/relationships_panel.html' %}
+{% plugin_left_page object %}
+</div>
+</div>
+<div class="row">
+   <div class="col-md-12">
+      {% plugin_full_width_page object %}
+   </div>
+</div>
+{% endblock content %}

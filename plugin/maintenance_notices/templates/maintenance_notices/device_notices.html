@@ -1,0 +1,12 @@
+<div class="panel panel-danger">
+    <div class="panel-heading"><strong>Active Maintenance Notices</strong></div>
+    <ul class="list-group">
+        {% for notice in active_notices %}
+            <li class="list-group-item">
+                <a href="{{ notice.get_absolute_url }}">{{ notice }}</a>
+            </li>
+        {% empty %}
+            <li class="list-group-item">None found.</li>
+        {% endfor %}
+    </ul>
+</div>

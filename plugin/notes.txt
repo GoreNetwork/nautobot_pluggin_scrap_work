@@ -1,0 +1,103 @@
+Instead of restarting services we can touch a file it monitors, making new files it doesn't monitor does nothing
+    touch /opt/nautobot/plugin/maintenance_notices/models.py
+Change users in nautobot's passwords with
+    nautobot-server changepassword user1    
+
+Build the plugin:
+ 
+
+    build setup.py file
+        from setuptools import find_packages, setup
+        setup(
+            name='maintenance-notices',
+            version='0.1',
+            description='A Nautobot plugin for tracking maintenance notices',
+            author='Student Name',
+            packages=find_packages(),
+            include_package_data=True,
+        )
+
+    Tell Nautobot to build out the basics (folder structure etc) of the plugin with 
+        nautobot-server startplugin <NEW_PLUGIN_NAME>
+
+    Update the __init__.py with anything you need to add (meta dataish stuff)
+        class MaintenanceNoticesConfig(PluginConfig):
+            name = "maintenance_notices"  # Raw plugin name; same as the plugin's source directory.
+            verbose_name = "Maintenance Notices"  # Human-friendly name for the plugin.
+            base_url = "maintenance_notices"  # (Optional) Base path to use for plugin URLs. Defaulting to app_name.
+            required_settings = []  # A list of any configuration parameters that must be defined by the user.
+            min_version = "1.0.0"  # Minimum version of Nautobot with which the plugin is compatible.
+            max_version = "1.999"  # Maximum version of Nautobot with which the plugin is compatible.
+            default_settings = {}  # A dictionary of configuration parameters and their default values.
+            caching_config = {}  # Plugin-specific cache configuration.
+            version = __version__
+            description='A scrap work plugin to learn stuff'
+            author='Daniel Himes'
+
+
+    Install app: 
+        python setup.py develop
+
+    Update plugins in nautobot_config.py
+        PLUGINS = [
+            "nautobot_plugin_nornir",
+            "nautobot_golden_config",
+            "maintenance_notices",]
+    
+    Restart Nautobot
+    
+Setup Models (databases)
+    https://nautobot.readthedocs.io/en/latest/plugins/development/#adding-database-models
+    Edit models.py inside the base dir, make a new model that inherits from the appropte demo model 
+        BaseModel, OrganizationalModel, PrimaryModel (see link above for diffrences). 
+        this is from BaseModel
+
+            class MaintenanceNotice(BaseModel):
+    Once done run the migrations from /opt/nautobot:
+        nautobot@nautobot:~$ nautobot-server makemigrations maintenance_notices
+        nautobot@nautobot:~$ nautobot-server migrate maintenance_notices
+    Get into the DB with
+        nautobot-server dbshell
+    run this to see name of table (name from __init__ + name of class defining table)
+        \d maintenance_notices_maintenancenotice
+    ctrl+z to escape
+
+Testing DB:
+    This is a 1 time thing: give nautobot user rights to create dbs.  Do this if you write tests in the tests folder
+        sudo -u postgres psql #as a user with sudo rights
+        ALTER USER nautobot CREATEDB; #give nautobot user rights to make dbs
+        \q #to exit
+
+Extend the UI to the plugin
+    add an admin.py to the same place as models.py
+    add in moduals
+        from django.contrib import admin
+        from maintenance_notices.models import MaintenanceNotice
+    make an admin class: has the feilds we want to display
+        @admin.register(MaintenanceNotice)
+        class MaintenanceNoticeAdmin(admin.ModelAdmin):
+            list_display = ('start_time', 'end_time', 'created_by')
+
+    In the GUI go into admin and look for maintenance notices and hit the add buttion
+    This should take you to a website to add things to the table
+
+Adding views/templates
+    make tables.py and forms.py in the same folder as the models.py
+    we need a super basic forms for now
+        """Forms for maintenance_notices."""
+        from django import forms
+        from nautobot.utilities.forms import (
+            BootstrapMixin,
+        )
+
+        from maintenance_notices import models
+
+        class MaintenanceNoticeForm(BootstrapMixin, forms.ModelForm):
+            """MaintenanceNotice creation/edit form."""
+
+            class Meta:
+                """Meta attributes."""
+
+                model = models.MaintenanceNotice
+                fields = ("__all__")
+    
